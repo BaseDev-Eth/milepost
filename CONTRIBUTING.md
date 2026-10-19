@@ -91,6 +91,27 @@ The same job fails if a component shows a `FIXTURE_*` stand-in without its
 the frontend guide for the rule, the allowlist and how to run the check
 locally (`npm run check:sample-tags --prefix frontend`).
 
+### Automated accessibility checks
+
+Every route in `frontend/src/routes.ts` is rendered in jsdom, in both the light
+and dark themes, and checked with [axe-core](https://github.com/dequelabs/axe-core).
+A serious or critical violation fails the build. The contracts, the wallet and
+the index are mocked, so the check never touches the network.
+
+Run it locally from `frontend/`:
+
+```bash
+cd frontend
+npm ci            # first time, or after a dependency change
+npm run test:a11y # every route, both themes
+```
+
+The `accessibility` job in `.github/workflows/ci.yml` runs the same command on
+every pull request to `dev` and on pushes to `dev` and `main`. To silence a
+rule, add an entry to `ACCESSIBILITY_EXCEPTIONS` in
+`frontend/src/test/accessibility.test.tsx` with a `reason`; the suite fails on
+an entry with no reason. Fixing the page is always preferred.
+
 ### Local Development Modes
 - **Fixture Mode:** Run `VITE_FIXTURES=1 npm --prefix frontend run dev` to run and inspect UI screens locally without requiring an active wallet connection or testnet funds.
 - **Component Gallery:** In dev mode, open `/dev/ui` in the browser to inspect all components from `src/components/ui/` and `src/components/state/`. It is left out of production builds, and CI fails if it ever reaches one (`frontend/scripts/check-no-dev-pages.sh`).
